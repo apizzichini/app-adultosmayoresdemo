@@ -152,3 +152,39 @@ body {
     margin: 10px auto 0 auto;
     text-align: center;
 }
+/* Centrado total de títulos */
+h1, h2, h3, .bienvenida, .info-card {
+    text-align: center !important;
+}
+
+/* Forzar visibilidad del contenedor de juegos */
+#contenedor-juego {
+    width: 100%;
+    min-height: 500px; /* Espacio mínimo garantizado */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 20px;
+}
+
+.oculto {
+    display: none !important;
+}
+
+/* Estilo del Footer corregido */
+.barra-inferior {
+    text-align: center;
+    padding: 20px;
+    background: var(--azul-oscuro);
+    color: white;
+}
+
+.tag-trememote {
+    display: block;
+    font-weight: bold;
+    font-size: 1.2rem;
+    letter-spacing: 3px;
+    margin-top: 10px;
+    color: #FFD700; /* Dorado */
+}
