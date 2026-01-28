@@ -94,3 +94,37 @@ body {
 .oculto { display: none !important; }
 .fade-in { animation: fadeIn 0.5s ease-in; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ... (Mantener todo lo anterior y agregar/modificar esto) ... */
+
+.barra-inferior {
+    background: var(--azul-oscuro);
+    color: var(--blanco);
+    text-align: center;
+    padding: 20px;
+    font-size: 0.9rem;
+    margin-top: auto;
+}
+
+.barra-inferior p {
+    margin: 5px 0;
+}
+
+.tag-trememote {
+    font-weight: 900;
+    letter-spacing: 4px;
+    font-size: 1.2rem;
+    color: #ffd700; /* Dorado para que resalte sobre el azul UNTREF */
+    margin-top: 10px !important;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    display: inline-block;
+    padding-top: 5px;
+}
+
+.contenedor-logos {
+    display: flex;
+    justify-content: space-evenly; /* Mejor distribución para 2 logos */
+    align-items: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
