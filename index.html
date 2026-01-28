@@ -3,83 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal UPAMI UNTREF</title>
+    <title>Innovar UNTREF - Portal UPAMI</title>
     <link rel="stylesheet" href="estilos.css">
-    <style>
-        /* Estilo de emergencia por si el CSS no carga */
-        body { margin: 0; padding: 0; background: #f0f0f0; min-height: 100vh; }
-        .oculto { display: none !important; }
-    </style>
 </head>
 <body>
-    <header>
-        <div class="top-bar">
-            <span class="logo-innovar">INNOVAR <b>UNTREF</b></span>
+
+    <header class="barra-superior">
+        <div class="contenedor-logos">
+            <img src="logo_innovar.png" alt="Innovar UNTREF" class="logo-main">
+            <img src="logo_upami.png" alt="UPAMI" class="logo-main">
+            <img src="logo_trememote.png" alt="Trememote" class="logo-main">
         </div>
-        <h1>Portal de Agilidad Mental</h1>
-        <p class="subtitle">UPAMI - Universidad Nacional de Tres de Febrero</p>
     </header>
 
-    <main id="pantalla-principal">
-        <div class="grid-juegos">
-            <div class="card-juego" onclick="iniciarJuego('administrativo')">
-                <div class="icono">📁</div>
-                <h3>1. El Administrativo</h3>
-                <p>20 Niveles de Lógica</p>
+    <main id="contenido-dinamico">
+        <section id="pantalla-principal" class="fade-in">
+            <div class="bienvenida">
+                <h1>Portal de Agilidad Mental</h1>
+                <p>Estimulación cognitiva para adultos mayores</p>
             </div>
-            <div class="card-juego" onclick="iniciarJuego('memoria')">
-                <div class="icono">🏢</div>
-                <h3>2. Memoria de Sedes</h3>
-                <p>Estimulación Visual</p>
+
+            <div class="grid-juegos">
+                <div class="card-juego" onclick="iniciarJuego('administrativo')">
+                    <div class="icono">📁</div>
+                    <h3>El Administrativo</h3>
+                    <p>Desafío de Lógica (20 Niveles)</p>
+                </div>
+                <div class="card-juego" onclick="iniciarJuego('memoria')">
+                    <div class="icono">🧠</div>
+                    <h3>Memoria de Sedes</h3>
+                    <p>Próximamente</p>
+                </div>
+                <div class="card-juego" onclick="iniciarJuego('calculo')">
+                    <div class="icono">🔢</div>
+                    <h3>Desafío 2048</h3>
+                    <p>Agilidad Numérica</p>
+                </div>
             </div>
-            <div class="card-juego" onclick="iniciarJuego('calculo')">
-                <div class="icono">➕</div>
-                <h3>3. Desafío 2048</h3>
-                <p>Agilidad Numérica</p>
-            </div>
-        </div>
+        </section>
+
+        <section id="contenedor-juego" class="oculto fade-in"></section>
     </main>
 
-    <section id="contenedor-juego" class="oculto"></section>
+    <footer class="barra-inferior">
+        <p>Desarrollado por <b>Agustin Pizzichini</b> y <b>Estefania Morreale</b> (AD HONOREM)</p>
+    </footer>
 
     <script src="logica_administrativo.js"></script>
-    <script src="memoria_untref.js"></script>
     <script src="calculo_untref.js"></script>
-    
+    <script src="memoria_untref.js"></script>
     <script>
-        <script src="logica_administrativo.js"></script>
-<script src="memoria_untref.js"></script>
-<script src="calculo_untref.js"></script>
+        function iniciarJuego(tipo) {
+            const principal = document.getElementById('pantalla-principal');
+            const juego = document.getElementById('contenedor-juego');
+            
+            principal.classList.add('oculto');
+            juego.classList.remove('oculto');
+            juego.innerHTML = ""; 
 
-<script>
-    function iniciarJuego(tipo) {
-        document.getElementById('pantalla-principal').classList.add('oculto');
-        const area = document.getElementById('contenedor-juego');
-        area.classList.remove('oculto');
-        area.innerHTML = ""; 
-
-        try {
-            if(tipo === 'administrativo') {
-                if (typeof cargarAdministrativo === "function") cargarAdministrativo();
-                else throw "Función cargarAdministrativo no encontrada";
+            try {
+                if(tipo === 'administrativo') cargarAdministrativo();
+                if(tipo === 'calculo') cargarCalculo();
+                if(tipo === 'memoria') cargarMemoria();
+            } catch (e) {
+                console.error(e);
+                juego.innerHTML = "<h3>Error al cargar el módulo. Revisa los archivos .js</h3>";
             }
-            if(tipo === 'memoria') {
-                if (typeof cargarMemoria === "function") cargarMemoria();
-                else throw "Función cargarMemoria no encontrada";
-            }
-            if(tipo === 'calculo') {
-                if (typeof cargarCalculo === "function") cargarCalculo();
-                else throw "Función cargarCalculo no encontrada";
-            }
-        } catch (e) {
-            console.error(e);
-            area.innerHTML = `<div style="padding:20px; color:red;">
-                <h3>⚠️ Error de Conexión</h3>
-                <p>No se pudo cargar el archivo JS. Revisa que el nombre sea exacto.</p>
-                <button onclick="volverAlMenu()">Volver</button>
-            </div>`;
         }
-    }
-</script>
+
+        function volverAlMenu() {
+            document.getElementById('pantalla-principal').classList.remove('oculto');
+            document.getElementById('contenedor-juego').classList.add('oculto');
+            document.onkeydown = null; // Limpiar teclado
+            window.scrollTo(0,0);
+        }
+    </script>
 </body>
 </html>
