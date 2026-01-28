@@ -1,7 +1,6 @@
-// --- VARIABLES DE ESTADO ---
-let tablero2048 = [];
-let puntaje2048 = 0;
-const TAMANIO = 4;
+let matrix = [];
+let totalScore = 0;
+const SIZE = 4;
 
 function cargarCalculo() {
     const area = document.getElementById('contenedor-juego');
@@ -10,115 +9,112 @@ function cargarCalculo() {
             <h2 style="color:var(--azul-untref)">Desafío 2048 UNTREF</h2>
             <div style="font-size: 1.5rem; margin-bottom: 10px;">Puntos: <span id="score">0</span></div>
             
-            <div id="grid" class="grid-2048"></div>
+            <div id="grid-container" class="grid-2048"></div>
 
             <div class="controles-2048">
-                <button class="btn-flecha" onclick="ejecutarMovimiento('up')">↑</button>
+                <button class="btn-flecha" onclick="handleMove('up')">↑</button>
                 <div class="fila-flechas">
-                    <button class="btn-flecha" onclick="ejecutarMovimiento('left')">←</button>
-                    <button class="btn-flecha" onclick="ejecutarMovimiento('right')">→</button>
+                    <button class="btn-flecha" onclick="handleMove('left')">←</button>
+                    <button class="btn-flecha" onclick="handleMove('right')">→</button>
                 </div>
-                <button class="btn-flecha" onclick="ejecutarMovimiento('down')">↓</button>
+                <button class="btn-flecha" onclick="handleMove('down')">↓</button>
             </div>
 
             <button class="btn-volver" onclick="volverAlMenu()" style="margin-top:20px;">← Volver al Menú</button>
         </div>
     `;
-    inicializarJuego();
+    init2048();
 }
 
-function inicializarJuego() {
-    // Crear matriz vacía de 4x4
-    tablero2048 = Array(TAMANIO).fill().map(() => Array(TAMANIO).fill(0));
-    puntaje2048 = 0;
-    document.getElementById('score').innerText = "0";
-    
-    agregarNumeroAleatorio();
-    agregarNumeroAleatorio();
-    renderizarTablero();
+function init2048() {
+    // Crear matriz vacía de 0s
+    matrix = Array(SIZE).fill().map(() => Array(SIZE).fill(0));
+    totalScore = 0;
+    addRandomTile();
+    addRandomTile();
+    drawGrid();
 
-    // Escuchar teclado
+    // Soporte para teclado
     document.onkeydown = (e) => {
-        if (e.key === 'ArrowLeft') ejecutarMovimiento('left');
-        if (e.key === 'ArrowRight') ejecutarMovimiento('right');
-        if (e.key === 'ArrowUp') ejecutarMovimiento('up');
-        if (e.key === 'ArrowDown') ejecutarMovimiento('down');
+        const keyMap = { 'ArrowUp': 'up', 'ArrowDown': 'down', 'ArrowLeft': 'left', 'ArrowRight': 'right' };
+        if (keyMap[e.key]) handleMove(keyMap[e.key]);
     };
 }
 
-function renderizarTablero() {
-    const gridDisplay = document.getElementById('grid');
-    gridDisplay.innerHTML = ''; // Limpiar visualmente
-    
-    for (let f = 0; f < TAMANIO; f++) {
-        for (let c = 0; c < TAMANIO; c++) {
-            let valor = tablero2048[f][c];
-            let div = document.createElement('div');
-            div.className = `celda ${valor > 0 ? 'celda-' + valor : ''}`;
-            div.innerText = valor > 0 ? valor : '';
-            gridDisplay.appendChild(div);
+function drawGrid() {
+    const container = document.getElementById('grid-container');
+    const scoreElement = document.getElementById('score');
+    if (!container) return;
+
+    container.innerHTML = '';
+    scoreElement.innerText = totalScore;
+
+    matrix.forEach(row => {
+        row.forEach(value => {
+            const tile = document.createElement('div');
+            tile.className = `celda ${value > 0 ? 'celda-' + value : ''}`;
+            tile.innerText = value > 0 ? value : '';
+            container.appendChild(tile);
+        });
+    });
+}
+
+function addRandomTile() {
+    let empty = [];
+    for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+            if (matrix[r][c] === 0) empty.push({r, c});
         }
+    }
+    if (empty.length > 0) {
+        let {r, c} = empty[Math.floor(Math.random() * empty.length)];
+        matrix[r][c] = Math.random() > 0.1 ? 2 : 4;
     }
 }
 
-function agregarNumeroAleatorio() {
-    let vacias = [];
-    for (let f = 0; f < TAMANIO; f++) {
-        for (let c = 0; c < TAMANIO; c++) {
-            if (tablero2048[f][c] === 0) vacias.push({f, c});
-        }
-    }
-    if (vacias.length > 0) {
-        let spot = vacias[Math.floor(Math.random() * vacias.length)];
-        tablero2048[spot.f][spot.c] = Math.random() > 0.1 ? 2 : 4;
-    }
-}
+function handleMove(direction) {
+    let oldMatrix = JSON.stringify(matrix);
 
-function ejecutarMovimiento(dir) {
-    let antes = JSON.stringify(tablero2048);
-
-    for (let i = 0; i < TAMANIO; i++) {
-        let fila = [];
-        // Extraer la línea según dirección
-        for (let j = 0; j < TAMANIO; j++) {
-            if (dir === 'left' || dir === 'right') fila.push(tablero2048[i][j]);
-            else fila.push(tablero2048[j][i]);
+    for (let i = 0; i < SIZE; i++) {
+        let line = [];
+        // Extraemos la fila o columna
+        for (let j = 0; j < SIZE; j++) {
+            if (direction === 'left' || direction === 'right') line.push(matrix[i][j]);
+            else line.push(matrix[j][i]);
         }
 
-        if (dir === 'right' || dir === 'down') fila.reverse();
+        if (direction === 'right' || direction === 'down') line.reverse();
         
-        // Lógica de deslizar y combinar
-        let nuevaFila = fila.filter(val => val !== 0);
-        for (let j = 0; j < nuevaFila.length - 1; j++) {
-            if (nuevaFila[j] === nuevaFila[j+1]) {
-                nuevaFila[j] *= 2;
-                puntaje2048 += nuevaFila[j];
-                nuevaFila.splice(j + 1, 1);
-            }
-        }
-        while (nuevaFila.length < TAMANIO) nuevaFila.push(0);
+        // Procesamos la línea: [2, 0, 2, 4] -> [4, 4, 0, 0]
+        let processed = slideAndMerge(line);
         
-        if (dir === 'right' || dir === 'down') nuevaFila.reverse();
+        if (direction === 'right' || direction === 'down') processed.reverse();
 
-        // Reinsertar en el tablero original
-        for (let j = 0; j < TAMANIO; j++) {
-            if (dir === 'left' || dir === 'right') tablero2048[i][j] = nuevaFila[j];
-            else tablero2048[j][i] = nuevaFila[j];
+        // Devolvemos los valores a la matriz
+        for (let j = 0; j < SIZE; j++) {
+            if (direction === 'left' || direction === 'right') matrix[i][j] = processed[j];
+            else matrix[j][i] = processed[j];
         }
     }
 
-    if (antes !== JSON.stringify(tablero2048)) {
-        document.getElementById('score').innerText = puntaje2048;
-        agregarNumeroAleatorio();
-        renderizarTablero();
-        chequearPerdio();
+    if (oldMatrix !== JSON.stringify(matrix)) {
+        addRandomTile();
+        drawGrid();
     }
 }
 
-function chequearPerdio() {
-    let hayEspacio = tablero2048.flat().includes(0);
-    if (!hayEspacio) {
-        alert("¡Tablero lleno! El juego se reiniciará.");
-        inicializarJuego();
+function slideAndMerge(line) {
+    // 1. Quitar ceros
+    let row = line.filter(num => num !== 0);
+    // 2. Combinar iguales
+    for (let i = 0; i < row.length - 1; i++) {
+        if (row[i] === row[i + 1]) {
+            row[i] *= 2;
+            totalScore += row[i];
+            row.splice(i + 1, 1);
+        }
     }
+    // 3. Rellenar con ceros
+    while (row.length < SIZE) row.push(0);
+    return row;
 }
