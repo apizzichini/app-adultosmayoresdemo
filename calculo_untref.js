@@ -1,115 +1,132 @@
-let tablero = [
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0]
-];
+// Variables globales del módulo
+let squares = [];
+let score = 0;
+const width = 4;
 
 function cargarCalculo() {
     const area = document.getElementById('contenedor-juego');
+    // Reiniciamos variables
+    squares = [];
+    score = 0;
+
     area.innerHTML = `
         <div class="juego-pantalla">
             <h2 style="color:var(--azul-untref)">Desafío 2048 UNTREF</h2>
-            <p>Usa las flechas para combinar números iguales.</p>
+            <div style="font-size: 1.5rem; margin-bottom: 10px;">Puntos: <span id="score">0</span></div>
             
-            <div id="tablero-2048" class="grid-2048"></div>
+            <div id="grid" class="grid-2048"></div>
 
             <div class="controles-2048">
-                <button class="btn-flecha" onclick="mover('arriba')">↑</button>
+                <button class="btn-flecha" id="btn-up">↑</button>
                 <div class="fila-flechas">
-                    <button class="btn-flecha" onclick="mover('izquierda')">←</button>
-                    <button class="btn-flecha" onclick="mover('derecha')">→</button>
+                    <button class="btn-flecha" id="btn-left">←</button>
+                    <button class="btn-flecha" id="btn-right">→</button>
                 </div>
-                <button class="btn-flecha" onclick="mover('abajo')">↓</button>
+                <button class="btn-flecha" id="btn-down">↓</button>
             </div>
 
             <button class="btn-volver" onclick="volverAlMenu()" style="margin-top:20px;">← Volver al Menú</button>
         </div>
     `;
-    reiniciarJuego2048();
+
+    createBoard();
+    setupControls();
 }
 
-function reiniciarJuego2048() {
-    tablero = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
-    agregarNumero();
-    agregarNumero();
-    dibujarTablero();
+function createBoard() {
+    const gridDisplay = document.getElementById('grid');
+    for (let i = 0; i < width * width; i++) {
+        let square = document.createElement('div');
+        square.classList.add('celda'); // Usamos la clase de tu CSS
+        square.innerHTML = '';
+        gridDisplay.appendChild(square);
+        squares.push(square);
+    }
+    generate();
+    generate();
 }
 
-function dibujarTablero() {
-    const contenedor = document.getElementById('tablero-2048');
-    if (!contenedor) return;
-    contenedor.innerHTML = '';
-    tablero.forEach(fila => {
-        fila.forEach(valor => {
-            const celda = document.createElement('div');
-            // Asigna clase según el valor para el color
-            celda.className = `celda celda-${valor > 2048 ? 'super' : valor}`;
-            celda.innerText = valor === 0 ? '' : valor;
-            contenedor.appendChild(celda);
-        });
+function generate() {
+    let emptySquares = squares.filter(s => s.innerHTML === '');
+    if (emptySquares.length > 0) {
+        let randomSquare = emptySquares[Math.floor(Math.random() * emptySquares.length)];
+        let value = Math.random() > 0.1 ? 2 : 4;
+        randomSquare.innerHTML = value;
+        randomSquare.setAttribute('data-value', value);
+        actualizarColores();
+        checkGameOver();
+    }
+}
+
+function move(direction) {
+    let hasMoved = false;
+    const scoreDisplay = document.getElementById('score');
+
+    for (let i = 0; i < 4; i++) {
+        let line = [];
+        for (let j = 0; j < 4; j++) {
+            let index = (direction === 'left' || direction === 'right') ? (i * 4 + j) : (j * 4 + i);
+            line.push(parseInt(squares[index].innerHTML) || 0);
+        }
+
+        if (direction === 'right' || direction === 'down') line.reverse();
+
+        let filteredLine = line.filter(num => num !== 0);
+        for (let j = 0; j < filteredLine.length - 1; j++) {
+            if (filteredLine[j] === filteredLine[j + 1]) {
+                filteredLine[j] *= 2;
+                score += filteredLine[j];
+                if(scoreDisplay) scoreDisplay.innerHTML = score;
+                filteredLine.splice(j + 1, 1);
+            }
+        }
+        while (filteredLine.length < 4) filteredLine.push(0);
+        if (direction === 'right' || direction === 'down') filteredLine.reverse();
+
+        for (let j = 0; j < 4; j++) {
+            let index = (direction === 'left' || direction === 'right') ? (i * 4 + j) : (j * 4 + i);
+            let newVal = filteredLine[j] === 0 ? '' : filteredLine[j];
+            if (squares[index].innerHTML != newVal.toString()) hasMoved = true;
+            squares[index].innerHTML = newVal;
+            squares[index].setAttribute('data-value', newVal);
+        }
+    }
+    if (hasMoved) {
+        generate();
+        actualizarColores();
+    }
+}
+
+// Vincula los botones y el teclado
+function setupControls() {
+    // Botones pantalla
+    document.getElementById('btn-up').onclick = () => move('up');
+    document.getElementById('btn-down').onclick = () => move('down');
+    document.getElementById('btn-left').onclick = () => move('left');
+    document.getElementById('btn-right').onclick = () => move('right');
+
+    // Teclado
+    document.onkeydown = (e) => {
+        if (e.key === 'ArrowLeft') move('left');
+        else if (e.key === 'ArrowRight') move('right');
+        else if (e.key === 'ArrowUp') move('up');
+        else if (e.key === 'ArrowDown') move('down');
+    };
+}
+
+function actualizarColores() {
+    squares.forEach(square => {
+        let val = square.innerHTML;
+        square.className = 'celda'; // Reset
+        if (val) square.classList.add(`celda-${val}`);
     });
 }
 
-function agregarNumero() {
-    let vacias = [];
-    for(let f=0; f<4; f++) {
-        for(let c=0; c<4; c++) {
-            if(tablero[f][c] === 0) vacias.push({f, c});
-        }
+function checkGameOver() {
+    let zeros = squares.filter(s => s.innerHTML === '').length;
+    if (zeros === 0) {
+        // Aquí podrías añadir una comprobación de si aún hay movimientos posibles
+        // Por ahora, un alert sencillo para UPAMI
+        alert('¡Tablero lleno! Inténtalo de nuevo.');
     }
-    if(vacias.length > 0) {
-        let {f, c} = vacias[Math.floor(Math.random() * vacias.length)];
-        tablero[f][c] = Math.random() > 0.1 ? 2 : 4;
-    }
-}
-
-// Lógica de Movimiento Core
-function mover(direccion) {
-    let tableroAnterior = JSON.stringify(tablero);
-
-    for (let i = 0; i < 4; i++) {
-        let linea = [];
-        if (direccion === 'izquierda' || direccion === 'derecha') {
-            linea = [...tablero[i]];
-            if (direccion === 'derecha') linea.reverse();
-            linea = consolidar(linea);
-            if (direccion === 'derecha') linea.reverse();
-            tablero[i] = linea;
-        } else {
-            // Para arriba y abajo extraemos la columna como una fila temporal
-            for (let j = 0; j < 4; j++) linea.push(tablero[j][i]);
-            if (direccion === 'abajo') linea.reverse();
-            linea = consolidar(linea);
-            if (direccion === 'abajo') linea.reverse();
-            for (let j = 0; j < 4; j++) tablero[j][i] = linea[j];
-        }
-    }
-
-    // Si hubo cambios, agregamos número y redibujamos
-    if (tableroAnterior !== JSON.stringify(tablero)) {
-        agregarNumero();
-        dibujarTablero();
-        verificarFinDeJuego();
-    }
-}
-
-function consolidar(linea) {
-    // 1. Desplazar todo lo que no es cero hacia el inicio
-    let nuevaLinea = linea.filter(v => v !== 0);
-    // 2. Sumar iguales adyacentes
-    for (let i = 0; i < nuevaLinea.length - 1; i++) {
-        if (nuevaLinea[i] === nuevaLinea[i + 1]) {
-            nuevaLinea[i] *= 2;
-            nuevaLinea.splice(i + 1, 1);
-        }
-    }
-    // 3. Rellenar con ceros hasta tener 4 elementos
-    while (nuevaLinea.length < 4) nuevaLinea.push(0);
-    return nuevaLinea;
-}
-
-function verificarFinDeJuego() {
-    // Si no hay ceros, podrías agregar una lógica de "Perdiste", 
-    // pero para UPAMI es mejor dejar que sigan intentando o reinicien.
 }
