@@ -1,103 +1,108 @@
-// ... (mantiene las variables y nivelesAdmin anteriores) ...
+// Variables de estado
+let nivelActualAdmin = 0;
+let datoEnMemoria = null;
+let posicionActual = 0; 
+
+const nivelesAdmin = [
+    { id: 1, objetivo: 10, inicial: 8, titulo: "Sede Caseros", explicacion: "Ingresa el legajo 8, súmale 2 para llegar a 10." },
+    { id: 2, objetivo: 15, inicial: 13, titulo: "Sede Lynch", explicacion: "Ingresa el legajo 13, súmale 2 para llegar a 15." }
+];
+
+// FUNCIÓN REQUERIDA POR EL INDEX
+function cargarAdministrativo() {
+    nivelActualAdmin = 0;
+    datoEnMemoria = null;
+    posicionActual = 0;
+    renderizarEscenaAdmin();
+    setupTecladoAdmin();
+}
+
+function renderizarEscenaAdmin() {
+    const n = nivelesAdmin[nivelActualAdmin] || nivelesAdmin[0];
+    const area = document.getElementById('contenedor-juego');
+    
+    area.innerHTML = `
+        <div class="juego-pantalla">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="badge">Nivel ${n.id} / 20</span>
+                <h3>${n.titulo}</h3>
+            </div>
+            <p class="instruccion">${n.explicacion}</p>
+
+            <div class="camino-datos">
+                <div id="estacion-0" class="estacion ${posicionActual === 0 ? 'activa' : ''}">
+                    <span>ENTRADA</span>
+                    <div class="buzon-box">
+                        ${datoEnMemoria === null ? `<input type="number" id="input-legajo" value="${n.inicial}" style="width:50px;">` : `<div class="legajo-viva">${datoEnMemoria}</div>`}
+                    </div>
+                </div>
+
+                <div id="estacion-1" class="estacion ${posicionActual === 1 ? 'activa' : ''}">
+                    <span>PROCESO</span>
+                    <div class="buzon-box process-circle">⚙️</div>
+                </div>
+
+                <div id="estacion-2" class="estacion ${posicionActual === 2 ? 'activa' : ''}">
+                    <span>SALIDA</span>
+                    <div class="buzon-box output-box">🏢</div>
+                </div>
+            </div>
+
+            <div class="consola-viva">> Use Flechas para mover | P para Procesar | Enter para Acción</div>
+            <button class="btn-volver" onclick="volverAlMenu()">← Salir</button>
+        </div>
+    `;
+    inyectarEstilosV3();
+}
 
 function setupTecladoAdmin() {
     document.onkeydown = (e) => {
-        // Bloqueamos scroll de flechas
-        if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) e.preventDefault();
-
-        if (e.key === "ArrowRight" && posicionActual < 2) {
-            posicionActual++;
-            renderizarEscenaAdmin();
-        }
-        if (e.key === "ArrowLeft" && posicionActual > 0) {
-            posicionActual--;
-            renderizarEscenaAdmin();
-        }
+        if (e.key === "ArrowRight" && posicionActual < 2) { posicionActual++; renderizarEscenaAdmin(); }
+        if (e.key === "ArrowLeft" && posicionActual > 0) { posicionActual--; renderizarEscenaAdmin(); }
         if (e.key === "Enter") {
             if (posicionActual === 0 && datoEnMemoria === null) {
-                const val = document.getElementById('input-legajo').value;
-                if (val) {
-                    datoEnMemoria = parseInt(val);
-                    lanzarEfectoDatos("zona-entrada");
-                    renderizarEscenaAdmin();
-                }
+                datoEnMemoria = parseInt(document.getElementById('input-legajo').value);
+                renderizarEscenaAdmin();
             } else if (posicionActual === 2) {
-                validarSalida();
+                const n = nivelesAdmin[nivelActualAdmin];
+                if(datoEnMemoria === n.objetivo) {
+                    alert("✅ ¡Legajo validado!");
+                    nivelActualAdmin++;
+                    if(nivelActualAdmin < nivelesAdmin.length) cargarAdministrativo();
+                    else alert("🎉 ¡GANASTE!");
+                } else {
+                    alert("❌ Error: Objetivo no alcanzado.");
+                    cargarAdministrativo();
+                }
             }
         }
         if (e.key.toLowerCase() === "p" && posicionActual === 1 && datoEnMemoria !== null) {
             datoEnMemoria += 2;
-            lanzarEfectoProceso(); // EFECTO VISUAL DE RAYO
-            setTimeout(renderizarEscenaAdmin, 300); // Pequeña pausa para ver el efecto
+            lanzarDestello();
+            renderizarEscenaAdmin();
         }
     };
 }
 
-// NUEVOS EFECTOS VISUALES
-function lanzarEfectoProceso() {
-    const procesador = document.getElementById('estacion-1');
-    procesador.style.filter = "brightness(1.5) saturate(2)";
-    procesador.style.transform = "scale(1.2) rotate(5deg)";
-    
-    const flash = document.createElement('div');
-    flash.className = "rayo-proceso";
-    procesador.appendChild(flash);
-    
-    setTimeout(() => {
-        flash.remove();
-        procesador.style.filter = "none";
-        procesador.style.transform = "scale(1.1)";
-    }, 300);
+function lanzarDestello() {
+    // Efecto visual rápido
+    const st1 = document.getElementById('estacion-1');
+    if(st1) st1.style.boxShadow = "0 0 30px #00ff00";
 }
 
-function lanzarEfectoDatos(idZona) {
-    // Simula una pequeña explosión de bits
-    console.log("Datos inyectados en:", idZona);
-}
-
-function inyectarEstilosAdminV2() {
-    if (document.getElementById('admin-styles-v2')) return;
+function inyectarEstilosV3() {
+    if (document.getElementById('v3-styles')) return;
     const s = document.createElement('style');
-    s.id = 'admin-styles-v2';
+    s.id = 'v3-styles';
     s.innerHTML = `
-        .camino-datos { display: flex; justify-content: space-around; margin: 40px 0; align-items: center; position: relative; }
-        
-        /* Efecto de Rayo de Procesamiento */
-        .rayo-proceso {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 184, 212, 0.4);
-            border-radius: 50%;
-            animation: pulsoRayo 0.3s ease-out;
-            pointer-events: none;
-        }
-
-        @keyframes pulsoRayo {
-            0% { transform: scale(0.5); opacity: 1; box-shadow: 0 0 20px #00e5ff; }
-            100% { transform: scale(2); opacity: 0; }
-        }
-
-        .estacion { padding: 10px; border-radius: 10px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0.5; text-align: center; }
-        .estacion.activa { opacity: 1; transform: scale(1.1); background: #e3f2fd; border: 2px solid var(--azul-untref); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        
-        .buzon-box { width: 80px; height: 80px; background: white; border: 2px solid #999; margin-top: 10px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 1.5rem; transition: 0.3s; }
-        .process-circle { border-radius: 50%; border-style: dashed; animation: rotarEngranaje 5s linear infinite; }
-        
-        @keyframes rotarEngranaje {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .legajo-viva { background: #fff176; padding: 10px; border: 1px solid #fbc02d; font-weight: bold; animation: aparecerLegajo 0.3s ease; }
-        
-        @keyframes aparecerLegajo {
-            0% { opacity: 0; transform: translateY(20px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-
-        .consola-viva { background: #1a1a1a; color: #00ff00; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; margin: 20px 0; border-left: 5px solid #00ff00; }
-        .teclas-ayuda { font-size: 0.8rem; color: #666; background: #eee; padding: 5px; border-radius: 5px; }
+        .camino-datos { display: flex; justify-content: center; gap: 20px; margin: 30px 0; }
+        .estacion { padding: 15px; border: 2px solid transparent; border-radius: 10px; transition: 0.3s; opacity: 0.4; text-align:center; }
+        .estacion.activa { opacity: 1; border-color: #2196F3; background: #e3f2fd; transform: scale(1.1); }
+        .buzon-box { width: 70px; height: 70px; background: white; border: 1px solid #ccc; margin: 10px auto; display: flex; align-items:center; justify-content:center; }
+        .legajo-viva { background: #ffeb3b; padding: 5px; font-weight: bold; }
+        .consola-viva { background: #222; color: #0f0; padding: 10px; font-family: monospace; font-size: 0.8rem; margin: 20px 0; }
+        .process-circle { border-radius: 50%; border-style: dashed; animation: rotar 4s linear infinite; }
+        @keyframes rotar { from {transform: rotate(0deg)} to {transform: rotate(360deg)} }
     `;
     document.head.appendChild(s);
 }
