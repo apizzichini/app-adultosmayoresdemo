@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Innovar UNTREF - Portal UPAMI</title>
+    <title>Portal Innovar UNTREF - UPAMI</title>
     <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
@@ -19,26 +19,38 @@
     <main id="contenido-dinamico">
         <section id="pantalla-principal" class="fade-in">
             <div class="bienvenida">
-                <h1>Portal de Agilidad Mental</h1>
-                <p>Estimulación cognitiva para adultos mayores</p>
+                <h1 class="texto-untref">Portal de Agilidad Mental</h1>
+                <p>Estimulación cognitiva y alfabetización digital</p>
             </div>
 
-            <div class="grid-juegos">
-                <div class="card-juego" onclick="iniciarJuego('administrativo')">
-                    <div class="icono">📁</div>
-                    <h3>El Administrativo</h3>
-                    <p>Desafío de Lógica (20 Niveles)</p>
+            <nav class="menu-institucional">
+                <button onclick="mostrarSeccion('juegos')" class="btn-nav">🎮 JUGAR</button>
+                <button onclick="mostrarSeccion('info')" class="btn-nav">🏢 UPAMI / UNTREF</button>
+                <button onclick="mostrarSeccion('innovar')" class="btn-nav">💡 INNOVACIÓN</button>
+            </nav>
+
+            <div id="sec-juegos" class="tab-content">
+                <div class="grid-juegos">
+                    <div class="card-juego" onclick="iniciarJuego('administrativo')">
+                        <div class="icono">📁</div>
+                        <h3>El Administrativo</h3>
+                        <p>Lógica de Procesamiento (20 Niveles)</p>
+                    </div>
                 </div>
-                <div class="card-juego" onclick="iniciarJuego('memoria')">
-                    <div class="icono">🧠</div>
-                    <h3>Memoria de Sedes</h3>
-                    <p>Próximamente</p>
-                </div>
-                <div class="card-juego" onclick="iniciarJuego('calculo')">
-                    <div class="icono">🔢</div>
-                    <h3>Desafío 2048</h3>
-                    <p>Agilidad Numérica</p>
-                </div>
+            </div>
+
+            <div id="sec-info" class="tab-content oculto">
+                <article class="info-card">
+                    <h2 class="texto-untref">UPAMI y UNTREF</h2>
+                    <p><b>UPAMI</b> es un programa integral que crea un espacio universitario específico para adultos mayores. En la <b>UNTREF</b>, este vínculo se fortalece promoviendo la inclusión digital y el intercambio de saberes.</p>
+                </article>
+            </div>
+
+            <div id="sec-innovar" class="tab-content oculto">
+                <article class="info-card">
+                    <h2 class="texto-untref">Innovar UNTREF</h2>
+                    <p>Desde <b>Innovar UNTREF</b> desarrollamos aplicaciones y materiales didácticos digitales diseñados para toda la comunidad de adultos mayores, priorizando la accesibilidad y el aprendizaje lúdico.</p>
+                </article>
             </div>
         </section>
 
@@ -50,31 +62,23 @@
     </footer>
 
     <script src="logica_administrativo.js"></script>
-    <script src="calculo_untref.js"></script>
-    <script src="memoria_untref.js"></script>
     <script>
-        function iniciarJuego(tipo) {
-            const principal = document.getElementById('pantalla-principal');
-            const juego = document.getElementById('contenedor-juego');
-            
-            principal.classList.add('oculto');
-            juego.classList.remove('oculto');
-            juego.innerHTML = ""; 
+        function mostrarSeccion(id) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('oculto'));
+            document.getElementById('sec-' + id).classList.remove('oculto');
+        }
 
-            try {
-                if(tipo === 'administrativo') cargarAdministrativo();
-                if(tipo === 'calculo') cargarCalculo();
-                if(tipo === 'memoria') cargarMemoria();
-            } catch (e) {
-                console.error(e);
-                juego.innerHTML = "<h3>Error al cargar el módulo. Revisa los archivos .js</h3>";
-            }
+        function iniciarJuego(tipo) {
+            document.getElementById('pantalla-principal').classList.add('oculto');
+            const juego = document.getElementById('contenedor-juego');
+            juego.classList.remove('oculto');
+            if(tipo === 'administrativo') cargarAdministrativo();
         }
 
         function volverAlMenu() {
             document.getElementById('pantalla-principal').classList.remove('oculto');
             document.getElementById('contenedor-juego').classList.add('oculto');
-            document.onkeydown = null; // Limpiar teclado
+            document.onkeydown = null;
             window.scrollTo(0,0);
         }
     </script>
