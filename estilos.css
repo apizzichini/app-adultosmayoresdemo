@@ -128,3 +128,27 @@ body {
     max-width: 600px;
     margin: 0 auto;
 }
+/* Centrado de títulos y textos institucionales */
+.bienvenida, .info-card, .header-admin, .juego-pantalla {
+    text-align: center !important;
+}
+
+.info-card {
+    margin: 0 auto 20px auto; /* Centra el bloque de la card */
+    text-align: center;
+}
+
+.info-card h2 {
+    text-align: center;
+}
+
+/* Alineación de los nombres en el footer */
+.barra-inferior {
+    text-align: center;
+}
+
+.tag-trememote {
+    display: block; /* Para que ocupe su propia línea centrada */
+    margin: 10px auto 0 auto;
+    text-align: center;
+}
