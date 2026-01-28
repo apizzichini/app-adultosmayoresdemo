@@ -1,82 +1,63 @@
-// ... (mantiene los nivelesAdministrativo anteriores) ...
+// Variables de control
+let nivelActual = 0;
+let datoEnMano = null;
 
-function renderizarNivel() {
-    const n = nivelesAdministrativo[nivelActual];
+// Niveles para el Serious Game (puedes añadir los 20 aquí)
+const nivelesAdministrativo = [
+    { n: 1, titulo: "Entrada Simple", mision: "Mueve el Legajo 8 a la Salida.", datoInicial: 8, objetivo: 8 },
+    { n: 2, titulo: "Proceso Básico", mision: "Suma +2 al Legajo 8 para enviarlo.", datoInicial: 8, objetivo: 10 },
+    { n: 3, titulo: "Dato Actualizado", mision: "Suma +2 al Legajo 5.", datoInicial: 5, objetivo: 7 }
+];
+
+// FUNCIÓN QUE LLAMA EL INDEX.HTML
+function cargarAdministrativo() {
+    nivelActual = 0;
+    renderizarNivelAdmin();
+}
+
+function renderizarNivelAdmin() {
+    const n = nivelesAdministrativo[nivelActual] || nivelesAdministrativo[0];
     const area = document.getElementById('contenedor-juego');
     
-    // Cambiamos el color según el nivel (frío a cálido)
-    const colorNivel = `hsl(${200 + (nivelActual * 5)}, 70%, 40%)`;
-
     area.innerHTML = `
         <div class="juego-pantalla">
-            <div class="header-nivel">
-                <span class="badge-nivel" style="background: ${colorNivel}">Nivel ${n.n} / 20</span>
-                <h2 style="color:var(--azul-untref); margin: 5px 0;">${n.titulo}</h2>
+            <h2 style="color:var(--azul-untref)">Nivel ${n.n}: ${n.titulo}</h2>
+            <div class="mision-box" style="background:#e1f5fe; padding:15px; border-radius:10px; margin-bottom:15px;">
+                <strong>Misión:</strong> ${n.mision}
             </div>
-            
-            <div class="mision-box" style="border-left-color: ${colorNivel}">
-                <strong>📋 INSTRUCCIÓN:</strong> ${n.mision}
-            </div>
-
-            <div class="escena-administrativa">
-                <div class="estacion">
-                    <span class="tag">ENTRADA</span>
-                    <div id="inbox" class="buzon">
-                        <div id="legajo-doc" class="documento" onclick="adminAccion('tomar')">${n.datoInicial}</div>
-                    </div>
+            <div style="display:flex; justify-content:space-around; align-items:center; margin:30px 0;">
+                <div class="buzon" style="border:2px solid #ccc; width:80px; height:80px; display:flex; align-items:center; justify-content:center;">
+                    <div id="legajo-doc" style="background:#fff176; padding:10px; border:1px solid #fbc02d; cursor:pointer;" onclick="adminAccion('tomar')">${n.datoInicial}</div>
                 </div>
-
-                <div class="estacion">
-                    <span class="tag">PROCESO (+2)</span>
-                    <div class="buzon-proceso" style="border-color: ${colorNivel}">
-                        <button class="btn-operar" style="background: ${colorNivel}" onclick="adminAccion('procesar')">⚙️ EJECUTAR</button>
-                    </div>
-                </div>
-
-                <div class="estacion">
-                    <span class="tag">SALIDA</span>
-                    <div id="outbox" class="buzon" onclick="adminAccion('soltar')"></div>
-                </div>
+                <button onclick="adminAccion('procesar')" style="padding:10px; background:var(--azul-untref); color:white; border:none; border-radius:5px; cursor:pointer;">SUMAR +2</button>
+                <div id="outbox" style="border:2px dashed #ccc; width:80px; height:80px;" onclick="adminAccion('soltar')"></div>
             </div>
-
-            <div id="admin-consola" class="consola">Esperando ingreso de datos...</div>
-            
-            <div style="margin-top:20px;">
-                <button class="btn-volver" onclick="volverAlMenu()">← Menú Principal</button>
-            </div>
+            <div id="admin-consola" style="background:#333; color:#0f0; padding:10px; font-family:monospace; border-radius:5px;">Esperando acción...</div>
+            <button class="btn-volver" onclick="volverAlMenu()" style="margin-top:20px;">← Volver al Menú</button>
         </div>
     `;
-    
     datoEnMano = null;
-    inyectarEstilosAdminExtra();
 }
 
-// NUEVA FUNCIÓN: Pantalla de Victoria Final
-function mostrarVictoriaFinal() {
-    const area = document.getElementById('contenedor-juego');
-    area.innerHTML = `
-        <div class="victoria-pantalla" style="text-align: center; padding: 50px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-            <div style="font-size: 5rem;">🏆</div>
-            <h1 style="color: var(--azul-untref); font-size: 2.5rem;">¡GRADUADO!</h1>
-            <p style="font-size: 1.2rem; color: #555;">Has completado los 20 niveles de la carrera administrativa.</p>
-            <div style="background: #e3f2fd; padding: 20px; border-radius: 15px; margin: 20px 0; border: 2px solid var(--azul-untref);">
-                <h3 style="margin:0;">Certificado Innovar UNTREF</h3>
-                <p>Otorgado a: <b>Alumno UPAMI</b></p>
-                <small>Por dominar la lógica de Entrada, Proceso y Salida.</small>
-            </div>
-            <button onclick="volverAlMenu()" style="padding: 15px 30px; background: var(--azul-untref); color: white; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 1.1rem;">
-                Volver al Portal
-            </button>
-        </div>
-    `;
-}
+function adminAccion(tipo) {
+    const n = nivelesAdministrativo[nivelActual];
+    const consola = document.getElementById('admin-consola');
+    const doc = document.getElementById('legajo-doc');
 
-// Modificamos el final de la función siguienteNivel:
-function siguienteNivel() {
-    nivelActual++;
-    if (nivelActual < nivelesAdministrativo.length) {
-        renderizarNivel();
-    } else {
-        mostrarVictoriaFinal();
+    if (tipo === 'tomar') {
+        datoEnMano = parseInt(doc.innerText);
+        consola.innerText = "> Legajo " + datoEnMano + " en mano.";
+    } else if (tipo === 'procesar' && datoEnMano !== null) {
+        datoEnMano += 2;
+        doc.innerText = datoEnMano;
+        consola.innerText = "> Procesando... Nuevo valor: " + datoEnMano;
+    } else if (tipo === 'soltar' && datoEnMano === n.objetivo) {
+        document.getElementById('outbox').appendChild(doc);
+        consola.innerText = "> ¡ÉXITO! Pasando al siguiente nivel...";
+        setTimeout(() => {
+            nivelActual++;
+            if(nivelActual < nivelesAdministrativo.length) renderizarNivelAdmin();
+            else alert("¡Felicidades! Completaste los niveles.");
+        }, 1200);
     }
 }
