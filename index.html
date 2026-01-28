@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal UPAMI UNTREF - Innovar</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+    <header>
+        <div class="top-bar">
+            <span class="logo-innovar">INNOVAR <b>UNTREF</b></span>
+        </div>
+        <h1>Portal de Agilidad Mental</h1>
+        <p class="subtitle">UPAMI - Universidad Nacional de Tres de Febrero</p>
+    </header>
+
+    <main id="pantalla-principal">
+        <div class="grid-juegos">
+            <div class="card-juego" onclick="iniciarJuego('administrativo')">
+                <div class="icono">📁</div>
+                <h3>1. El Administrativo</h3>
+                <p>Lógica de Procesos</p>
+            </div>
+            <div class="card-juego" onclick="iniciarJuego('memoria')">
+                <div class="icono">🏢</div>
+                <h3>2. Memoria de Sedes</h3>
+                <p>Estimulación Visual</p>
+            </div>
+            <div class="card-juego" onclick="iniciarJuego('calculo')">
+                <div class="icono">➕</div>
+                <h3>3. Cálculo UNTREF</h3>
+                <p>Agilidad Numérica</p>
+            </div>
+        </div>
+        
+        <div class="badge-container">
+            <div id="progreso-barra">Tu Progreso: <span id="puntos">0</span> Diplomas</div>
+        </div>
+    </main>
+
+    <section id="contenedor-juego" class="oculto"></section>
+
+    <script src="logica_administrativo.js"></script>
+    <script src="memoria_untref.js"></script>
+    <script src="calculo_untref.js"></script>
+    
+    <script>
+        function iniciarJuego(tipo) {
+            document.getElementById('pantalla-principal').classList.add('oculto');
+            const area = document.getElementById('contenedor-juego');
+            area.classList.remove('oculto');
+            area.innerHTML = ""; // Limpiar pantalla anterior
+
+            if(tipo === 'administrativo') cargarAdministrativo();
+            if(tipo === 'memoria') cargarMemoria();
+            if(tipo === 'calculo') cargarCalculo();
+        }
+
+        function volverAlMenu() {
+            document.getElementById('pantalla-principal').classList.remove('oculto');
+            document.getElementById('contenedor-juego').classList.add('oculto');
+        }
+    </script>
+</body>
+</html>
