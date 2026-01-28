@@ -79,3 +79,56 @@ h1 { color: var(--azul-untref); margin: 10px 0; }
     .card-juego { width: 100%; max-width: 300px; }
     h1 { font-size: 1.5rem; }
 }
+/* Estilos específicos para 2048 */
+.grid-2048 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    background: #bbada0;
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 400px;
+    margin: 20px auto;
+}
+
+.celda {
+    aspect-ratio: 1/1;
+    background: rgba(238, 228, 218, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border-radius: 5px;
+    color: #776e65;
+}
+
+.celda-2 { background: #eee4da; }
+.celda-4 { background: #ede0c8; }
+.celda-8 { background: #f2b179; color: white; }
+.celda-16 { background: #f59563; color: white; }
+.celda-32 { background: #f67c5f; color: white; }
+
+.controles-2048 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    margin-top: 20px;
+}
+
+.btn-flecha {
+    width: 80px;
+    height: 60px;
+    font-size: 2rem;
+    background: var(--azul-untref);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.fila-flechas {
+    display: flex;
+    gap: 40px;
+}
