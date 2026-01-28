@@ -12,8 +12,7 @@
         <div class="contenedor-logos">
             <img src="logo_innovar.png" alt="Innovar UNTREF" class="logo-main">
             <img src="logo_upami.png" alt="UPAMI" class="logo-main">
-            <img src="logo_trememote.png" alt="Trememote" class="logo-main">
-        </div>
+            </div>
     </header>
 
     <main id="contenido-dinamico">
@@ -34,7 +33,12 @@
                     <div class="card-juego" onclick="iniciarJuego('administrativo')">
                         <div class="icono">📁</div>
                         <h3>El Administrativo</h3>
-                        <p>Lógica de Procesamiento (20 Niveles)</p>
+                        <p>Lógica de Procesamiento</p>
+                    </div>
+                    <div class="card-juego" onclick="iniciarJuego('calculo')">
+                        <div class="icono">🔢</div>
+                        <h3>Desafío 2048</h3>
+                        <p>Agilidad Numérica</p>
                     </div>
                 </div>
             </div>
@@ -42,14 +46,14 @@
             <div id="sec-info" class="tab-content oculto">
                 <article class="info-card">
                     <h2 class="texto-untref">UPAMI y UNTREF</h2>
-                    <p><b>UPAMI</b> es un programa integral que crea un espacio universitario específico para adultos mayores. En la <b>UNTREF</b>, este vínculo se fortalece promoviendo la inclusión digital y el intercambio de saberes.</p>
+                    <p>Espacio universitario específico para adultos mayores que promueve la inclusión digital.</p>
                 </article>
             </div>
 
             <div id="sec-innovar" class="tab-content oculto">
                 <article class="info-card">
                     <h2 class="texto-untref">Innovar UNTREF</h2>
-                    <p>Desde <b>Innovar UNTREF</b> desarrollamos aplicaciones y materiales didácticos digitales diseñados para toda la comunidad de adultos mayores, priorizando la accesibilidad y el aprendizaje lúdico.</p>
+                    <p>Desarrollo de materiales didácticos digitales para toda la comunidad.</p>
                 </article>
             </div>
         </section>
@@ -59,9 +63,12 @@
 
     <footer class="barra-inferior">
         <p>Desarrollado por <b>Agustin Pizzichini</b> y <b>Estefania Morreale</b> (AD HONOREM)</p>
+        <p class="tag-trememote">TREMEMOTE</p>
     </footer>
 
     <script src="logica_administrativo.js"></script>
+    <script src="calculo_untref.js"></script>
+    
     <script>
         function mostrarSeccion(id) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.add('oculto'));
@@ -72,7 +79,10 @@
             document.getElementById('pantalla-principal').classList.add('oculto');
             const juego = document.getElementById('contenedor-juego');
             juego.classList.remove('oculto');
+            juego.innerHTML = ""; 
+
             if(tipo === 'administrativo') cargarAdministrativo();
+            if(tipo === 'calculo') cargarCalculo(); // Llama a la función en calculo_untref.js
         }
 
         function volverAlMenu() {
