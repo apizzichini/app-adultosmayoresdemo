@@ -1,189 +1,150 @@
-// --- VARIABLES GLOBALES DEL MÓDULO ---
-let matrix = [];
-let totalScore = 0;
-const SIZE = 4;
+let matriz2048 = [];
+let puntuacion2048 = 0;
 
-/**
- * Función principal que carga la interfaz del juego
- */
 function cargarCalculo() {
     const area = document.getElementById('contenedor-juego');
     area.innerHTML = `
-        <div class="juego-pantalla">
-            <h2 style="color:var(--azul-untref)">Desafío 2048 UNTREF</h2>
-            <div style="font-size: 1.5rem; margin-bottom: 10px; font-weight: bold;">
-                Puntos: <span id="score">0</span>
-            </div>
+        <div class="juego-pantalla fade-in" style="text-align: center;">
+            <h2 class="titulo-centrado">Desafío 2048 UNTREF</h2>
             
-            <div id="grid-container" class="grid-2048"></div>
-
-            <div class="controles-2048">
-                <button class="btn-flecha" id="btn-up">↑</button>
-                <div class="fila-flechas">
-                    <button class="btn-flecha" id="btn-left">←</button>
-                    <button class="btn-flecha" id="btn-right">→</button>
-                </div>
-                <button class="btn-flecha" id="btn-down">↓</button>
+            <div id="score-box" class="puntaje-2048">
+                Puntos: 0
             </div>
 
-            <div style="margin-top:20px;">
-                <button onclick="init2048()" style="padding:10px 20px; background:#666; color:white; border:none; border-radius:5px; cursor:pointer;">Reiniciar Juego</button>
-                <button class="btn-volver" onclick="volverAlMenu()">← Volver al Menú</button>
+            <p style="margin-bottom: 20px;">Usa las <b>flechas del teclado</b> para combinar los números.</p>
+
+            <div class="contenedor-tablero">
+                <div id="grid-2048" class="grid-container-2048"></div>
             </div>
+
+            <button class="btn-nav" style="margin-top:30px; background:#e74c3c; color:white;" onclick="volverAlMenu()">
+                ← VOLVER AL PORTAL
+            </button>
         </div>
     `;
-    
-    init2048();
-    bloquearScroll();
+    inyectarEstilos2048();
+    iniciarJuego2048();
+    configurarTeclado2048();
 }
 
-/**
- * Inicializa la matriz y los eventos
- */
-function init2048() {
-    // 1. Crear matriz lógica de ceros
-    matrix = Array(SIZE).fill().map(() => Array(SIZE).fill(0));
-    totalScore = 0;
-
-    // 2. Agregar dos números iniciales
-    addRandomTile();
-    addRandomTile();
-    
-    // 3. Dibujar en pantalla
-    drawGrid();
-
-    // 4. Configurar Controles (Teclado y Botones)
-    setupEventListeners();
+function iniciarJuego2048() {
+    matriz2048 = Array(4).fill().map(() => Array(4).fill(0));
+    puntuacion2048 = 0;
+    agregarNumeroNuevo();
+    agregarNumeroNuevo();
+    actualizarVista2048();
 }
 
-function drawGrid() {
-    const container = document.getElementById('grid-container');
-    const scoreElement = document.getElementById('score');
-    if (!container) return;
+function agregarNumeroNuevo() {
+    let vacios = [];
+    for(let r=0; r<4; r++) {
+        for(let c=0; c<4; c++) {
+            if(matriz2048[r][c] === 0) vacios.push({r, c});
+        }
+    }
+    if(vacios.length > 0) {
+        let spot = vacios[Math.floor(Math.random() * vacios.length)];
+        matriz2048[spot.r][spot.c] = Math.random() > 0.1 ? 2 : 4;
+    }
+}
 
-    container.innerHTML = ''; // Limpiar tablero previo
-    scoreElement.innerText = totalScore;
-
-    matrix.forEach(row => {
-        row.forEach(value => {
-            const tile = document.createElement('div');
-            // La clase dinámica celda-2, celda-4, etc. aplica los colores del CSS
-            tile.className = `celda ${value > 0 ? 'celda-' + value : ''}`;
-            tile.innerText = value > 0 ? value : '';
-            container.appendChild(tile);
+function actualizarVista2048() {
+    const grid = document.getElementById('grid-2048');
+    grid.innerHTML = '';
+    matriz2048.forEach(fila => {
+        fila.forEach(valor => {
+            let celda = document.createElement('div');
+            celda.className = 'celda-2048';
+            if(valor > 0) {
+                celda.innerText = valor;
+                celda.setAttribute('data-value', valor);
+            }
+            grid.appendChild(celda);
         });
     });
+    document.getElementById('score-box').innerText = `Puntos: ${puntuacion2048}`;
 }
 
-function addRandomTile() {
-    let empty = [];
-    for (let r = 0; r < SIZE; r++) {
-        for (let c = 0; c < SIZE; c++) {
-            if (matrix[r][c] === 0) empty.push({r, c});
-        }
-    }
-    if (empty.length > 0) {
-        let {r, c} = empty[Math.floor(Math.random() * empty.length)];
-        matrix[r][c] = Math.random() > 0.1 ? 2 : 4;
-    }
-}
-
-/**
- * Lógica de Movimiento Principal
- */
-function handleMove(direction) {
-    let oldMatrix = JSON.stringify(matrix);
-
-    for (let i = 0; i < SIZE; i++) {
-        let line = [];
-        // Extraer línea (fila o columna) según dirección
-        for (let j = 0; j < SIZE; j++) {
-            if (direction === 'left' || direction === 'right') {
-                line.push(matrix[i][j]);
-            } else {
-                line.push(matrix[j][i]);
-            }
-        }
-
-        // Invertir si es derecha o abajo para procesar siempre hacia adelante
-        if (direction === 'right' || direction === 'down') line.reverse();
-        
-        // Procesar deslizamiento y combinación
-        let processed = slideAndMerge(line);
-        
-        if (direction === 'right' || direction === 'down') processed.reverse();
-
-        // Guardar cambios en la matriz original
-        for (let j = 0; j < SIZE; j++) {
-            if (direction === 'left' || direction === 'right') {
-                matrix[i][j] = processed[j];
-            } else {
-                matrix[j][i] = processed[j];
-            }
-        }
-    }
-
-    // Solo si el tablero cambió, agregamos número y redibujamos
-    if (oldMatrix !== JSON.stringify(matrix)) {
-        addRandomTile();
-        drawGrid();
-        checkGameOver();
-    }
-}
-
-function slideAndMerge(line) {
-    // 1. Quitar los ceros [2, 0, 2, 0] -> [2, 2]
-    let row = line.filter(num => num !== 0);
-    // 2. Sumar iguales adyacentes [2, 2] -> [4]
-    for (let i = 0; i < row.length - 1; i++) {
-        if (row[i] === row[i + 1]) {
-            row[i] *= 2;
-            totalScore += row[i];
-            row.splice(i + 1, 1);
-        }
-    }
-    // 3. Rellenar con ceros hasta completar el tamaño [4] -> [4, 0, 0, 0]
-    while (row.length < SIZE) row.push(0);
-    return row;
-}
-
-function setupEventListeners() {
-    // Botones físicos en pantalla
-    document.getElementById('btn-up').onclick = () => handleMove('up');
-    document.getElementById('btn-down').onclick = () => handleMove('down');
-    document.getElementById('btn-left').onclick = () => handleMove('left');
-    document.getElementById('btn-right').onclick = () => handleMove('right');
-
-    // Teclado
+function configurarTeclado2048() {
     document.onkeydown = (e) => {
-        const keyMap = { 
-            'ArrowUp': 'up', 
-            'ArrowDown': 'down', 
-            'ArrowLeft': 'left', 
-            'ArrowRight': 'right' 
-        };
-        if (keyMap[e.key]) {
-            handleMove(keyMap[e.key]);
+        if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
+            e.preventDefault();
+            mover2048(e.key);
         }
     };
 }
 
-/**
- * Bloquea el scroll de la página al usar las flechas del teclado
- */
-function bloquearScroll() {
-    window.addEventListener("keydown", function(e) {
-        if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
-            e.preventDefault();
-        }
-    }, false);
+function mover2048(direccion) {
+    let anterior = JSON.stringify(matriz2048);
+    if(direccion === 'ArrowLeft') slideIzquierda();
+    if(direccion === 'ArrowRight') slideDerecha();
+    if(direccion === 'ArrowUp') slideArriba();
+    if(direccion === 'ArrowDown') slideAbajo();
+
+    if(anterior !== JSON.stringify(matriz2048)) {
+        agregarNumeroNuevo();
+        actualizarVista2048();
+    }
 }
 
-function checkGameOver() {
-    let hasEmpty = matrix.flat().includes(0);
-    if (!hasEmpty) {
-        // Podrías agregar una lógica más compleja aquí, 
-        // pero para UPAMI un aviso de tablero lleno es suficiente.
-        alert("¡Tablero lleno! Buen intento.");
+// Lógica de suma y movimiento
+function slide(fila) {
+    let arr = fila.filter(val => val);
+    for (let i = 0; i < arr.length - 1; i++) {
+        if (arr[i] === arr[i + 1]) {
+            arr[i] *= 2;
+            puntuacion2048 += arr[i];
+            arr[i + 1] = 0;
+        }
     }
+    arr = arr.filter(val => val);
+    while (arr.length < 4) arr.push(0);
+    return arr;
+}
+
+function slideIzquierda() { matriz2048 = matriz2048.map(fila => slide(fila)); }
+function slideDerecha() { matriz2048 = matriz2048.map(fila => slide(fila.reverse()).reverse()); }
+function slideArriba() {
+    for (let c = 0; c < 4; c++) {
+        let col = [matriz2048[0][c], matriz2048[1][c], matriz2048[2][c], matriz2048[3][c]];
+        col = slide(col);
+        for (let r = 0; r < 4; r++) matriz2048[r][c] = col[r];
+    }
+}
+function slideAbajo() {
+    for (let c = 0; c < 4; c++) {
+        let col = [matriz2048[0][c], matriz2048[1][c], matriz2048[2][c], matriz2048[3][c]];
+        col = slide(col.reverse()).reverse();
+        for (let r = 0; r < 4; r++) matriz2048[r][c] = col[r];
+    }
+}
+
+function inyectarEstilos2048() {
+    if(document.getElementById('css-2048')) return;
+    const s = document.createElement('style');
+    s.id = 'css-2048';
+    s.innerHTML = `
+        .titulo-centrado { color: var(--azul-untref); text-align: center; margin-bottom: 10px; }
+        .puntaje-2048 { background: var(--azul-untref); color: white; display: inline-block; padding: 10px 20px; border-radius: 5px; margin-bottom: 15px; font-weight: bold; }
+        .contenedor-tablero { display: flex; justify-content: center; width: 100%; }
+        .grid-container-2048 {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+            background: #8b7d70; padding: 10px; border-radius: 10px;
+            width: 300px; height: 300px;
+        }
+        .celda-2048 {
+            width: 65px; height: 65px; background: rgba(238, 228, 218, 0.35);
+            border-radius: 5px; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1.4rem; color: #444; border: 1px solid rgba(0,0,0,0.1);
+        }
+        .celda-2048[data-value="2"] { background: #eee4da; color: #776e65; }
+        .celda-2048[data-value="4"] { background: #ede0c8; color: #776e65; }
+        .celda-2048[data-value="8"] { background: #f2b179; color: white; }
+        .celda-2048[data-value="16"] { background: #f59563; color: white; }
+        .celda-2048[data-value="32"] { background: #f67c5f; color: white; }
+        .celda-2048[data-value="64"] { background: #f65e3b; color: white; }
+        .celda-2048[data-value="128"] { background: #edcf72; color: white; font-size: 1.1rem; }
+        .celda-2048[data-value="256"] { background: #edcc61; color: white; font-size: 1.1rem; }
+    `;
+    document.head.appendChild(s);
 }
