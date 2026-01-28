@@ -1,63 +1,103 @@
-// Variables de control
-let nivelActual = 0;
-let datoEnMano = null;
+// ... (mantiene las variables y nivelesAdmin anteriores) ...
 
-// Niveles para el Serious Game (puedes añadir los 20 aquí)
-const nivelesAdministrativo = [
-    { n: 1, titulo: "Entrada Simple", mision: "Mueve el Legajo 8 a la Salida.", datoInicial: 8, objetivo: 8 },
-    { n: 2, titulo: "Proceso Básico", mision: "Suma +2 al Legajo 8 para enviarlo.", datoInicial: 8, objetivo: 10 },
-    { n: 3, titulo: "Dato Actualizado", mision: "Suma +2 al Legajo 5.", datoInicial: 5, objetivo: 7 }
-];
+function setupTecladoAdmin() {
+    document.onkeydown = (e) => {
+        // Bloqueamos scroll de flechas
+        if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) e.preventDefault();
 
-// FUNCIÓN QUE LLAMA EL INDEX.HTML
-function cargarAdministrativo() {
-    nivelActual = 0;
-    renderizarNivelAdmin();
+        if (e.key === "ArrowRight" && posicionActual < 2) {
+            posicionActual++;
+            renderizarEscenaAdmin();
+        }
+        if (e.key === "ArrowLeft" && posicionActual > 0) {
+            posicionActual--;
+            renderizarEscenaAdmin();
+        }
+        if (e.key === "Enter") {
+            if (posicionActual === 0 && datoEnMemoria === null) {
+                const val = document.getElementById('input-legajo').value;
+                if (val) {
+                    datoEnMemoria = parseInt(val);
+                    lanzarEfectoDatos("zona-entrada");
+                    renderizarEscenaAdmin();
+                }
+            } else if (posicionActual === 2) {
+                validarSalida();
+            }
+        }
+        if (e.key.toLowerCase() === "p" && posicionActual === 1 && datoEnMemoria !== null) {
+            datoEnMemoria += 2;
+            lanzarEfectoProceso(); // EFECTO VISUAL DE RAYO
+            setTimeout(renderizarEscenaAdmin, 300); // Pequeña pausa para ver el efecto
+        }
+    };
 }
 
-function renderizarNivelAdmin() {
-    const n = nivelesAdministrativo[nivelActual] || nivelesAdministrativo[0];
-    const area = document.getElementById('contenedor-juego');
+// NUEVOS EFECTOS VISUALES
+function lanzarEfectoProceso() {
+    const procesador = document.getElementById('estacion-1');
+    procesador.style.filter = "brightness(1.5) saturate(2)";
+    procesador.style.transform = "scale(1.2) rotate(5deg)";
     
-    area.innerHTML = `
-        <div class="juego-pantalla">
-            <h2 style="color:var(--azul-untref)">Nivel ${n.n}: ${n.titulo}</h2>
-            <div class="mision-box" style="background:#e1f5fe; padding:15px; border-radius:10px; margin-bottom:15px;">
-                <strong>Misión:</strong> ${n.mision}
-            </div>
-            <div style="display:flex; justify-content:space-around; align-items:center; margin:30px 0;">
-                <div class="buzon" style="border:2px solid #ccc; width:80px; height:80px; display:flex; align-items:center; justify-content:center;">
-                    <div id="legajo-doc" style="background:#fff176; padding:10px; border:1px solid #fbc02d; cursor:pointer;" onclick="adminAccion('tomar')">${n.datoInicial}</div>
-                </div>
-                <button onclick="adminAccion('procesar')" style="padding:10px; background:var(--azul-untref); color:white; border:none; border-radius:5px; cursor:pointer;">SUMAR +2</button>
-                <div id="outbox" style="border:2px dashed #ccc; width:80px; height:80px;" onclick="adminAccion('soltar')"></div>
-            </div>
-            <div id="admin-consola" style="background:#333; color:#0f0; padding:10px; font-family:monospace; border-radius:5px;">Esperando acción...</div>
-            <button class="btn-volver" onclick="volverAlMenu()" style="margin-top:20px;">← Volver al Menú</button>
-        </div>
-    `;
-    datoEnMano = null;
+    const flash = document.createElement('div');
+    flash.className = "rayo-proceso";
+    procesador.appendChild(flash);
+    
+    setTimeout(() => {
+        flash.remove();
+        procesador.style.filter = "none";
+        procesador.style.transform = "scale(1.1)";
+    }, 300);
 }
 
-function adminAccion(tipo) {
-    const n = nivelesAdministrativo[nivelActual];
-    const consola = document.getElementById('admin-consola');
-    const doc = document.getElementById('legajo-doc');
+function lanzarEfectoDatos(idZona) {
+    // Simula una pequeña explosión de bits
+    console.log("Datos inyectados en:", idZona);
+}
 
-    if (tipo === 'tomar') {
-        datoEnMano = parseInt(doc.innerText);
-        consola.innerText = "> Legajo " + datoEnMano + " en mano.";
-    } else if (tipo === 'procesar' && datoEnMano !== null) {
-        datoEnMano += 2;
-        doc.innerText = datoEnMano;
-        consola.innerText = "> Procesando... Nuevo valor: " + datoEnMano;
-    } else if (tipo === 'soltar' && datoEnMano === n.objetivo) {
-        document.getElementById('outbox').appendChild(doc);
-        consola.innerText = "> ¡ÉXITO! Pasando al siguiente nivel...";
-        setTimeout(() => {
-            nivelActual++;
-            if(nivelActual < nivelesAdministrativo.length) renderizarNivelAdmin();
-            else alert("¡Felicidades! Completaste los niveles.");
-        }, 1200);
-    }
+function inyectarEstilosAdminV2() {
+    if (document.getElementById('admin-styles-v2')) return;
+    const s = document.createElement('style');
+    s.id = 'admin-styles-v2';
+    s.innerHTML = `
+        .camino-datos { display: flex; justify-content: space-around; margin: 40px 0; align-items: center; position: relative; }
+        
+        /* Efecto de Rayo de Procesamiento */
+        .rayo-proceso {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 184, 212, 0.4);
+            border-radius: 50%;
+            animation: pulsoRayo 0.3s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes pulsoRayo {
+            0% { transform: scale(0.5); opacity: 1; box-shadow: 0 0 20px #00e5ff; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        .estacion { padding: 10px; border-radius: 10px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0.5; text-align: center; }
+        .estacion.activa { opacity: 1; transform: scale(1.1); background: #e3f2fd; border: 2px solid var(--azul-untref); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        
+        .buzon-box { width: 80px; height: 80px; background: white; border: 2px solid #999; margin-top: 10px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 1.5rem; transition: 0.3s; }
+        .process-circle { border-radius: 50%; border-style: dashed; animation: rotarEngranaje 5s linear infinite; }
+        
+        @keyframes rotarEngranaje {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .legajo-viva { background: #fff176; padding: 10px; border: 1px solid #fbc02d; font-weight: bold; animation: aparecerLegajo 0.3s ease; }
+        
+        @keyframes aparecerLegajo {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .consola-viva { background: #1a1a1a; color: #00ff00; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; margin: 20px 0; border-left: 5px solid #00ff00; }
+        .teclas-ayuda { font-size: 0.8rem; color: #666; background: #eee; padding: 5px; border-radius: 5px; }
+    `;
+    document.head.appendChild(s);
 }
