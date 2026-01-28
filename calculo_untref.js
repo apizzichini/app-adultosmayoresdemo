@@ -1,14 +1,10 @@
-// Variables globales del módulo
-let squares = [];
-let score = 0;
-const width = 4;
+// --- VARIABLES DE ESTADO ---
+let tablero2048 = [];
+let puntaje2048 = 0;
+const TAMANIO = 4;
 
 function cargarCalculo() {
     const area = document.getElementById('contenedor-juego');
-    // Reiniciamos variables
-    squares = [];
-    score = 0;
-
     area.innerHTML = `
         <div class="juego-pantalla">
             <h2 style="color:var(--azul-untref)">Desafío 2048 UNTREF</h2>
@@ -17,116 +13,112 @@ function cargarCalculo() {
             <div id="grid" class="grid-2048"></div>
 
             <div class="controles-2048">
-                <button class="btn-flecha" id="btn-up">↑</button>
+                <button class="btn-flecha" onclick="ejecutarMovimiento('up')">↑</button>
                 <div class="fila-flechas">
-                    <button class="btn-flecha" id="btn-left">←</button>
-                    <button class="btn-flecha" id="btn-right">→</button>
+                    <button class="btn-flecha" onclick="ejecutarMovimiento('left')">←</button>
+                    <button class="btn-flecha" onclick="ejecutarMovimiento('right')">→</button>
                 </div>
-                <button class="btn-flecha" id="btn-down">↓</button>
+                <button class="btn-flecha" onclick="ejecutarMovimiento('down')">↓</button>
             </div>
 
             <button class="btn-volver" onclick="volverAlMenu()" style="margin-top:20px;">← Volver al Menú</button>
         </div>
     `;
-
-    createBoard();
-    setupControls();
+    inicializarJuego();
 }
 
-function createBoard() {
-    const gridDisplay = document.getElementById('grid');
-    for (let i = 0; i < width * width; i++) {
-        let square = document.createElement('div');
-        square.classList.add('celda'); // Usamos la clase de tu CSS
-        square.innerHTML = '';
-        gridDisplay.appendChild(square);
-        squares.push(square);
-    }
-    generate();
-    generate();
-}
+function inicializarJuego() {
+    // Crear matriz vacía de 4x4
+    tablero2048 = Array(TAMANIO).fill().map(() => Array(TAMANIO).fill(0));
+    puntaje2048 = 0;
+    document.getElementById('score').innerText = "0";
+    
+    agregarNumeroAleatorio();
+    agregarNumeroAleatorio();
+    renderizarTablero();
 
-function generate() {
-    let emptySquares = squares.filter(s => s.innerHTML === '');
-    if (emptySquares.length > 0) {
-        let randomSquare = emptySquares[Math.floor(Math.random() * emptySquares.length)];
-        let value = Math.random() > 0.1 ? 2 : 4;
-        randomSquare.innerHTML = value;
-        randomSquare.setAttribute('data-value', value);
-        actualizarColores();
-        checkGameOver();
-    }
-}
-
-function move(direction) {
-    let hasMoved = false;
-    const scoreDisplay = document.getElementById('score');
-
-    for (let i = 0; i < 4; i++) {
-        let line = [];
-        for (let j = 0; j < 4; j++) {
-            let index = (direction === 'left' || direction === 'right') ? (i * 4 + j) : (j * 4 + i);
-            line.push(parseInt(squares[index].innerHTML) || 0);
-        }
-
-        if (direction === 'right' || direction === 'down') line.reverse();
-
-        let filteredLine = line.filter(num => num !== 0);
-        for (let j = 0; j < filteredLine.length - 1; j++) {
-            if (filteredLine[j] === filteredLine[j + 1]) {
-                filteredLine[j] *= 2;
-                score += filteredLine[j];
-                if(scoreDisplay) scoreDisplay.innerHTML = score;
-                filteredLine.splice(j + 1, 1);
-            }
-        }
-        while (filteredLine.length < 4) filteredLine.push(0);
-        if (direction === 'right' || direction === 'down') filteredLine.reverse();
-
-        for (let j = 0; j < 4; j++) {
-            let index = (direction === 'left' || direction === 'right') ? (i * 4 + j) : (j * 4 + i);
-            let newVal = filteredLine[j] === 0 ? '' : filteredLine[j];
-            if (squares[index].innerHTML != newVal.toString()) hasMoved = true;
-            squares[index].innerHTML = newVal;
-            squares[index].setAttribute('data-value', newVal);
-        }
-    }
-    if (hasMoved) {
-        generate();
-        actualizarColores();
-    }
-}
-
-// Vincula los botones y el teclado
-function setupControls() {
-    // Botones pantalla
-    document.getElementById('btn-up').onclick = () => move('up');
-    document.getElementById('btn-down').onclick = () => move('down');
-    document.getElementById('btn-left').onclick = () => move('left');
-    document.getElementById('btn-right').onclick = () => move('right');
-
-    // Teclado
+    // Escuchar teclado
     document.onkeydown = (e) => {
-        if (e.key === 'ArrowLeft') move('left');
-        else if (e.key === 'ArrowRight') move('right');
-        else if (e.key === 'ArrowUp') move('up');
-        else if (e.key === 'ArrowDown') move('down');
+        if (e.key === 'ArrowLeft') ejecutarMovimiento('left');
+        if (e.key === 'ArrowRight') ejecutarMovimiento('right');
+        if (e.key === 'ArrowUp') ejecutarMovimiento('up');
+        if (e.key === 'ArrowDown') ejecutarMovimiento('down');
     };
 }
 
-function actualizarColores() {
-    squares.forEach(square => {
-        let val = square.innerHTML;
-        square.className = 'celda'; // Reset
-        if (val) square.classList.add(`celda-${val}`);
-    });
+function renderizarTablero() {
+    const gridDisplay = document.getElementById('grid');
+    gridDisplay.innerHTML = ''; // Limpiar visualmente
+    
+    for (let f = 0; f < TAMANIO; f++) {
+        for (let c = 0; c < TAMANIO; c++) {
+            let valor = tablero2048[f][c];
+            let div = document.createElement('div');
+            div.className = `celda ${valor > 0 ? 'celda-' + valor : ''}`;
+            div.innerText = valor > 0 ? valor : '';
+            gridDisplay.appendChild(div);
+        }
+    }
 }
 
-function checkGameOver() {
-    let zeros = squares.filter(s => s.innerHTML === '').length;
-    if (zeros === 0) {
-        // Aquí podrías añadir una comprobación de si aún hay movimientos posibles
-        // Por ahora, un alert sencillo para UPAMI
-        alert('¡Tablero lleno! Inténtalo de nuevo.');
+function agregarNumeroAleatorio() {
+    let vacias = [];
+    for (let f = 0; f < TAMANIO; f++) {
+        for (let c = 0; c < TAMANIO; c++) {
+            if (tablero2048[f][c] === 0) vacias.push({f, c});
+        }
+    }
+    if (vacias.length > 0) {
+        let spot = vacias[Math.floor(Math.random() * vacias.length)];
+        tablero2048[spot.f][spot.c] = Math.random() > 0.1 ? 2 : 4;
+    }
+}
+
+function ejecutarMovimiento(dir) {
+    let antes = JSON.stringify(tablero2048);
+
+    for (let i = 0; i < TAMANIO; i++) {
+        let fila = [];
+        // Extraer la línea según dirección
+        for (let j = 0; j < TAMANIO; j++) {
+            if (dir === 'left' || dir === 'right') fila.push(tablero2048[i][j]);
+            else fila.push(tablero2048[j][i]);
+        }
+
+        if (dir === 'right' || dir === 'down') fila.reverse();
+        
+        // Lógica de deslizar y combinar
+        let nuevaFila = fila.filter(val => val !== 0);
+        for (let j = 0; j < nuevaFila.length - 1; j++) {
+            if (nuevaFila[j] === nuevaFila[j+1]) {
+                nuevaFila[j] *= 2;
+                puntaje2048 += nuevaFila[j];
+                nuevaFila.splice(j + 1, 1);
+            }
+        }
+        while (nuevaFila.length < TAMANIO) nuevaFila.push(0);
+        
+        if (dir === 'right' || dir === 'down') nuevaFila.reverse();
+
+        // Reinsertar en el tablero original
+        for (let j = 0; j < TAMANIO; j++) {
+            if (dir === 'left' || dir === 'right') tablero2048[i][j] = nuevaFila[j];
+            else tablero2048[j][i] = nuevaFila[j];
+        }
+    }
+
+    if (antes !== JSON.stringify(tablero2048)) {
+        document.getElementById('score').innerText = puntaje2048;
+        agregarNumeroAleatorio();
+        renderizarTablero();
+        chequearPerdio();
+    }
+}
+
+function chequearPerdio() {
+    let hayEspacio = tablero2048.flat().includes(0);
+    if (!hayEspacio) {
+        alert("¡Tablero lleno! El juego se reiniciará.");
+        inicializarJuego();
     }
 }
